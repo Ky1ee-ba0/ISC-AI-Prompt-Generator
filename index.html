@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISC AI Prompt Generator</title>
+<!-- Đã cập nhật icon máy bay giấy -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='24' height='24' rx='6' fill='url(%23g)'/%3E%3Cpath d='M3.5 12.5L20 4.5L14.8 20.5L11.3 13.7L3.5 12.5Z' fill='white'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='24' y2='24'%3E%3Cstop stop-color='%230FA958'/%3E%3Cstop offset='1' stop-color='%230B7A3E'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#FCFEFD;
+    --bg-2:#EAF7EE;
+    --bg-3:#CDEBD9;
+    --glass:rgba(255,255,255,0.55);
+    --glass-strong:rgba(255,255,255,0.72);
+    --glass-border:rgba(255,255,255,0.85);
+    --glass-shadow:0 24px 60px rgba(15,64,40,0.16), 0 4px 14px rgba(15,64,40,0.08);
+    --glass-edge-light:inset 1.5px 1.5px 0 rgba(255,255,255,0.95);
+    --accent-a:#16A34A;
+    --accent-b:#34D399;
+    --accent-red:#EF4444;
+    --text-hi:#122318;
+    --text-mid:#394b41;
+    --text-dim:#75857b;
+    --danger:#E4576B;
+    --radius:22px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  
+  /* Cập nhật nền sáng, trong trẻo */
+  body {
+    min-height: 100vh;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    color: var(--text-hi);
+    background: linear-gradient(145deg, #F5FEF9 0%, #E6F7EC 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+
+  /* Khối màu trôi nổi làm mềm mượt */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: 0;
+    pointer-events: none;
+    transition: all 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  
+  .blob-1 {
+    width: 500px; height: 500px;
+    background: rgba(134, 239, 172, 0.45);
+    top: -100px; left: -100px;
+    animation: float1 18s ease-in-out infinite alternate;
+  }
+  
+  .blob-2 {
+    width: 450px; height: 450px;
+    background: rgba(110, 231, 183, 0.35); 
+    bottom: -100px; right: -50px;
+    animation: float2 22s ease-in-out infinite alternate;
+  }
+
+  @keyframes float1 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(60px, 80px) scale(1.1); }
+  }
+  @keyframes float2 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-60px, -70px) scale(1.15); }
+  }
+
+  /* Hiệu ứng loading Liquid Glass siêu mượt */
+  body.is-generating .blob-1 {
+    background: rgba(22, 163, 74, 0.6);
+    filter: blur(90px);
+    animation: pulseLiquid1 4s ease-in-out infinite alternate;
+  }
+  
+  body.is-generating .blob-2 {
+    background: rgba(6, 182, 212, 0.5);
+    filter: blur(100px);
+    animation: pulseLiquid2 5s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulseLiquid1 {
+    0% { transform: translate(20px, 20px) scale(1.1); }
+    100% { transform: translate(120px, 140px) scale(1.4); }
+  }
+  @keyframes pulseLiquid2 {
+    0% { transform: translate(-20px, -20px) scale(1.1); }
+    100% { transform: translate(-140px, -100px) scale(1.5); }
+  }
+
+  .app{position:relative;z-index:1;max-width:1360px;margin:0 auto;padding:26px 24px 20px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;}
+  .brand{display:flex;align-items:center;gap:14px;}
+
+  .logo-tile{
+    width:52px;height:52px;border-radius:14px;flex:none;
+    background:linear-gradient(145deg,#0FA958 0%,#16A34A 40%,#0B7A3E 100%);
+    border:1px solid var(--glass-border);
+    box-shadow:0 10px 24px rgba(15,90,55,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;overflow:hidden;
+  }
+  .logo-tile::after{
+    content:"";position:absolute;inset:0;border-radius:inherit;
+    background:rgba(255,255,255,0.16);
+    backdrop-filter:blur(6px) saturate(140%);
+    -webkit-backdrop-filter:blur(6px) saturate(140%);
+  }
+  .logo-tile::before{
+    content:"";position:absolute;top:-40%;left:-20%;width:140%;height:60%;
+    background:linear-gradient(120deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    transform:rotate(-8deg);z-index:2;
+  }
+  .logo-tile svg{width:24px;height:24px;position:relative;z-index:3;color:#fff;filter:drop-shadow(0 2px 3px rgba(0,60,30,0.35));}
+
+  .brand-text h1{font-family:'Be Vietnam Pro',sans-serif;font-size:21px;font-weight:700;margin:0;letter-spacing:0.2px;color:var(--text-hi);}
+  .brand-text p{margin:4px 0 0;font-size:13.5px;color:var(--text-dim); font-weight: 500;}
+
+  .icon-btn{
+    width:44px;height:44px;border-radius:13px;
+    background:var(--glass);border:1px solid var(--glass-border);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    transition:transform .18s ease, background .18s ease;
+    color:var(--text-mid);
+    box-shadow:var(--glass-shadow);
+    backdrop-filter:blur(12px);
+  }
+  .icon-btn:hover{background:var(--glass-strong);transform:translateY(-1px);color:var(--accent-a);}
+  .icon-btn svg{width:21px;height:21px;}
+
+  .grid{display:grid;grid-template-columns:minmax(340px,440px) 1fr;gap:30px;align-items:start;}
+  @media (max-width:900px){.grid{grid-template-columns:1fr;}}
+
+  .left-col { display: flex; flex-direction: column; gap: 24px; }
+
+  .panel{
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius);
+    padding:26px 24px;
+    backdrop-filter:blur(22px) saturate(160%);
+    -webkit-backdrop-filter:blur(22px) saturate(160%);
+    box-shadow:var(--glass-shadow), var(--glass-edge-light);
+    position:relative;
+  }
+
+  .panel h2{
+    font-family:'Be Vietnam Pro',sans-serif;font-size:15.5px;font-weight:700;
+    letter-spacing:0.6px;text-transform:uppercase;color:var(--text-mid);
+    margin:0 0 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid rgba(22, 163, 74, 0.15);
+  }
+  .clear-all-btn{
+    display:flex;align-items:center;gap:6px;
+    background:rgba(228,87,107,0.08);border:1px solid rgba(228,87,107,0.2);
+    color:var(--danger);font-size:12px;font-weight:700;letter-spacing:0.3px;text-transform:none;
+    padding:6px 11px;border-radius:999px;cursor:pointer;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .clear-all-btn:hover{background:rgba(228,87,107,0.18);transform:translateY(-1px);}
+  .clear-all-btn svg{width:14px;height:14px;flex:none;}
+
+  label{display:block;font-size:14px;color:var(--text-hi);margin:18px 0 8px;font-weight:700;}
+  label:first-of-type{margin-top:0;}
+  .label-optional{font-weight:500;color:var(--text-dim);font-size:12.5px; display: block; margin-top: 2px;}
+
+  textarea, select, input[type=text], input[type=password]{
+    width:100%;
+    background:rgba(255,255,255,0.75);
+    border:1px solid rgba(255,255,255,0.9);
+    border-radius:14px;
+    color:var(--text-hi);
+    font-family:'Be Vietnam Pro',sans-serif;
+    font-size:15px;
+    padding:14px 16px;
+    outline:none;
+    transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    box-shadow:inset 0 1px 2px rgba(31,89,58,0.04);
+  }
+  textarea:focus, select:focus, input:focus{border-color:var(--accent-a);background:rgba(255,255,255,1);box-shadow:0 0 0 3px rgba(22,163,74,0.15);}
+  textarea{min-height:150px;resize:vertical;line-height:1.6;}
+  textarea.small{min-height:85px;}
+  #articleInput{min-height:300px;font-size:15px;}
+  textarea::placeholder, input::placeholder{color:#9ca3af; font-size: 14px;}
+
+  select{appearance:none;-webkit-appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1L7 7L13 1' stroke='%234B5D53' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 16px center;padding-right:40px;
+    font-weight: 500;
+  }
+  select option, select optgroup{background:#fff;color:var(--text-hi); font-weight: normal;}
+
+  .char-count{font-size:12.5px;color:var(--text-dim);text-align:right;margin-top:6px; font-weight: 500;}
+
+  .upload-box{
+    border:2px dashed rgba(22,163,74,0.35);border-radius:14px;
+    background:rgba(255,255,255,0.5);
+    padding:20px;text-align:center;cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .upload-box:hover{border-color:var(--accent-a);background:rgba(255,255,255,0.8);}
+  .upload-box svg{width:26px;height:26px;color:var(--accent-a);margin-bottom:8px;}
+  .upload-box .upload-text{font-size:13.5px;color:var(--text-mid); font-weight: 600;}
+  .upload-box .upload-hint{font-size:12.5px;color:var(--text-dim);margin-top:4px;}
+  .upload-preview-wrap{display:flex;align-items:center;gap:12px;padding:8px;}
+  .upload-preview-wrap img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,0.9);}
+  .upload-preview-name{flex:1;font-size:13px;color:var(--text-mid);text-align:left;word-break:break-all; font-weight: 500;}
+  .upload-remove{
+    width:30px;height:30px;border-radius:8px;border:none;background:rgba(228,87,107,0.15);
+    color:var(--danger);font-size:16px;cursor:pointer;flex:none; font-weight: bold;
+  }
+
+  .btn-primary{
+    width:100%;
+    border:none;border-radius:16px;
+    padding:18px 20px;
+    font-family:'Be Vietnam Pro',sans-serif;font-weight:700;font-size:16px;
+    color:#fff;
+    background:linear-gradient(135deg,var(--accent-a),var(--accent-b));
+    cursor:pointer;position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    box-shadow:0 12px 30px rgba(22,163,74,0.32);
+    transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+  }
+  .btn-primary::before{
+    content:"";position:absolute;top:0;left:-30%;width:40%;height:100%;
+    background:linear-gradient(120deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
+    transform:skewX(-15deg);
+  }
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 16px 36px rgba(22,163,74,0.42);}
+  .btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+
+  .spinner{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;animation:spin .7s linear infinite;display:none;}
+  .spinner.show{display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ====== Floating Error Toast System ====== */
+  .toast-container{
+    position:fixed;top:20px;right:20px;z-index:9999;
+    display:flex;flex-direction:column;gap:12px;
+    max-width:min(380px, calc(100vw - 40px));
+    pointer-events:none;
+  }
+  .error-toast{
+    pointer-events:auto;
+    display:flex;align-items:flex-start;gap:10px;
+    padding:14px 16px;border-radius:14px;
+    font-size:14px;line-height:1.5;font-weight:600;color:#fff;
+    box-shadow:0 16px 40px rgba(18,35,24,0.28);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    transform:translateX(120%);opacity:0;
+    transition:transform .35s cubic-bezier(.2,.9,.3,1.3), opacity .3s ease;
+  }
+  .error-toast.show{transform:translateX(0);opacity:1;}
+  .error-toast.hide{transform:translateX(120%);opacity:0;}
+  .error-toast .et-icon{flex:none;font-size:17px;line-height:1;margin-top:1px;}
+  .error-toast .et-text{flex:1;}
+  .error-toast.warning{background:linear-gradient(135deg,#F59E0B,#F97316);}
+  .error-toast.overload{background:linear-gradient(135deg,#F97316,#EF4444);}
+  .error-toast.danger{background:linear-gradient(135deg,#EF4444,#DC2626);}
+  .error-toast.critical{background:linear-gradient(135deg,#991B1B,#7F1D1D);}
+
+  .output-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .output-head h2{margin:0;text-transform:uppercase;letter-spacing:0.6px;font-size:15.5px;font-weight:800;color:var(--text-hi);font-family:'Be Vietnam Pro',sans-serif;}
+  .output-sub{font-size:14px;color:var(--text-mid); font-weight: 600;}
+
+  .empty-state{
+    border:2px dashed rgba(255,255,255,0.9);border-radius:var(--radius);
+    background:var(--glass);backdrop-filter:blur(16px);
+    padding:70px 30px;text-align:center;color:var(--text-mid);
+    display:flex;flex-direction:column;align-items:center;gap:16px;
+  }
+  .empty-state svg{width:54px;height:54px;opacity:0.8;color:var(--accent-a);}
+  .empty-state p{margin:0;font-size:15px;max-width:380px;line-height:1.6; font-weight: 500;}
+
+  .cards{display:flex;flex-direction:column;gap:24px;}
+
+  .card{
+    background:var(--glass);border:1px solid var(--glass-border);
+    border-radius:var(--radius);padding:24px;
+    backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+    box-shadow:var(--glass-shadow), var(--glass-edge-light);
+    animation:rise .45s ease both;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
+  .concept-badge{
+    font-family:'Be Vietnam Pro',sans-serif;font-size:11.5px;font-weight:800;letter-spacing:0.5px;
+    color:#fff;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));
+    padding:6px 12px;border-radius:999px;flex:none;
+  }
+  .card-title{font-family:'Be Vietnam Pro',sans-serif;font-size:18px;font-weight:800;margin:0;color:var(--text-hi); line-height: 1.4;}
+  .card-explain{font-size:14.5px;color:var(--text-mid);line-height:1.6;margin:0 0 16px; font-weight: 500;}
+
+  .prompt-box{
+    background:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.95);
+    border-radius:14px;padding:16px;
+    font-family:'SFMono-Regular',Consolas,'Courier New',monospace;
+    font-size:14px;line-height:1.7;color:#133320;
+    max-height:240px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+  }
+
+  .copy-btn{
+    margin-top:16px;width:100%;
+    background:#ffffff;border:1px solid rgba(22, 163, 74, 0.2);
+    color:var(--accent-a);font-family:'Be Vietnam Pro',sans-serif;font-weight:700;font-size:15px;
+    padding:14px;border-radius:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    transition:all .15s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+  }
+  .copy-btn:hover{background:var(--accent-a); color: #fff; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(22,163,74,0.2);}
+  .copy-btn.copied{background:var(--accent-a);border-color:var(--accent-a);color:#fff;}
+  .copy-btn svg{width:18px;height:18px;}
+
+  .skeleton-card{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;}
+  .sk-line{height:14px;border-radius:6px;background:linear-gradient(90deg, rgba(255,255,255,0.4), rgba(255,255,255,0.9), rgba(255,255,255,0.4));background-size:200% 100%;animation:shimmer 1.4s ease infinite;margin-bottom:12px;}
+  @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(18,35,24,0.35);backdrop-filter:blur(8px);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    width:100%;max-width:460px;
+    background:rgba(255,255,255,0.9);
+    border:1px solid rgba(255,255,255,0.95);border-radius:24px;
+    padding:30px;box-shadow:0 30px 80px rgba(18,60,38,0.25), inset 0 1px 0 rgba(255,255,255,0.9);
+    backdrop-filter:blur(24px) saturate(180%);
+    animation:pop .22s ease both;
+  }
+  @keyframes pop{from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:scale(1);}}
+  .modal h3{font-family:'Be Vietnam Pro',sans-serif;margin:0 0 12px;font-size:18px;color:var(--text-hi); font-weight: 800;}
+  .modal p.hint{font-size:14.5px;color:var(--text-mid);margin:0 0 20px;line-height:1.65;}
+  .modal-row{display:flex;gap:12px;margin-top:24px;}
+  .btn-ghost, .btn-solid{
+    flex:1;padding:14px;border-radius:14px;font-family:'Be Vietnam Pro',sans-serif;font-weight:700;font-size:14.5px;cursor:pointer;border:none;
+  }
+  .btn-ghost{background:rgba(18,35,24,0.06);color:var(--text-hi);border:1px solid rgba(255,255,255,0.9);}
+  .btn-ghost:hover{background:rgba(18,35,24,0.1);}
+  .btn-solid{background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:#fff;}
+  .modal a{color:var(--accent-a);text-decoration:none;font-weight:700;}
+  .modal a:hover{text-decoration:underline;}
+
+  .toast{
+    position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:rgba(255,255,255,0.95);border:1px solid rgba(255,255,255,1);color:var(--text-hi);
+    padding:14px 24px;border-radius:14px;font-size:14.5px;font-weight:600;
+    box-shadow:0 20px 50px rgba(18,60,38,0.25);
+    backdrop-filter:blur(16px);
+    display:flex;align-items:center;gap:10px;
+    opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;
+    z-index:60;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast .dot{width:10px;height:10px;border-radius:50%;background:var(--accent-a);}
+
+  footer.app-footer{
+    max-width:1360px;margin:20px auto 0;padding:16px 24px 10px;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    font-size:13px;color:var(--text-dim);position:relative;z-index:1;text-align:center;flex-wrap:wrap;
+    font-weight: 500;
+  }
+  footer.app-footer .dot-sep{width:4px;height:4px;border-radius:50%;background:var(--text-dim);}
+</style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="logo-tile">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.5 12.5L21 3.5L14.8 21.5L11.3 13.7L2.5 12.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="currentColor" fill-opacity="0.98"/>
+            <path d="M11.3 13.7L21 3.5" stroke="rgba(15,90,55,0.35)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>ISC AI Prompt Generator</h1>
+          <p>Biến ý tưởng bài viết tiếng Việt thành prompt vẽ ảnh chuẩn kỹ thuật</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="settingsBtn" title="Cài đặt API Key">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: INPUT -->
+      <div class="left-col">
+        <!-- Khối 1: Nội dung -->
+        <div class="panel">
+          <h2>
+            <span>Nội dung &amp; Tham chiếu</span>
+            <button type="button" class="clear-all-btn" id="clearAllBtn" title="Xóa toàn bộ nội dung đã nhập">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+              Xóa tất cả
+            </button>
+          </h2>
+
+          <label for="articleInput">Nội dung bài viết / ý tưởng</label>
+          <textarea id="articleInput" placeholder="Ví dụ: Bài viết giới thiệu dòng sản phẩm sơn chống thấm mới của công ty, nhấn mạnh khả năng chịu thời tiết khắc nghiệt..."></textarea>
+          <div class="char-count"><span id="charCount">0</span> ký tự</div>
+
+          <label>Thông tin tham chiếu <span class="label-optional">(không bắt buộc — tên sản phẩm/model, màu sắc thương hiệu, tòa nhà...)</span></label>
+          <textarea id="refText" class="small" placeholder="Ví dụ: Nhà máy ISC tại Bình Dương, khung thép xanh lá, mái tôn trắng, có logo ISC ở cổng chính..."></textarea>
+
+          <label>Ảnh tham chiếu <span class="label-optional">(không bắt buộc — giúp AI bám sát hình ảnh thật)</span></label>
+          <div class="upload-box" id="uploadBox">
+            <input type="file" id="refImageInput" accept="image/*" hidden>
+            <div id="uploadPlaceholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="9" cy="9" r="1.8"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+              <div class="upload-text">Bấm để tải ảnh thực tế lên</div>
+              <div class="upload-hint">Sản phẩm, tòa nhà... (JPG, PNG — Tối đa 4MB)</div>
+            </div>
+            <div class="upload-preview-wrap" id="uploadPreviewWrap" style="display:none;">
+              <img id="uploadPreview" alt="Ảnh tham chiếu">
+              <div class="upload-preview-name" id="uploadFileName"></div>
+              <button class="upload-remove" id="removeRefImage" type="button" title="Xoá ảnh">✕</button>
+            </div>
+          </div>
+
+          <label>Text/chữ cần xuất hiện chính xác trong ảnh <span class="label-optional">(không bắt buộc — để trống nếu không cần chữ)</span></label>
+          <textarea id="exactText" class="small" placeholder="Ví dụ: chữ trên banner cần ghi đúng &quot;ƯU ĐÃI 20%&quot;. Khuyên dùng: Để trống vì AI vẽ chữ dễ bị méo."></textarea>
+        </div>
+
+        <!-- Khối 2: Thông số hình ảnh -->
+        <div class="panel">
+          <h2>Thông số hình ảnh</h2>
+          
+          <label for="aspectRatio">Tỉ lệ ảnh</label>
+          <select id="aspectRatio">
+            <optgroup label="Vuông">
+              <option value="1:1">1:1 — Vuông (Instagram/Facebook Post)</option>
+            </optgroup>
+            <optgroup label="Dọc">
+              <option value="4:5">4:5 — Dọc Feed (Instagram/Facebook tối ưu)</option>
+              <option value="9:16">9:16 — Story/Reels/TikTok/Shorts</option>
+              <option value="2:3">2:3 — Dọc chuẩn Pinterest/In ấn</option>
+            </optgroup>
+            <optgroup label="Ngang">
+              <option value="16:9" selected>16:9 — Video/YouTube/Banner Web</option>
+              <option value="1.91:1">1.91:1 — Link Preview Facebook/LinkedIn</option>
+              <option value="3:2">3:2 — Ảnh chụp tiêu chuẩn/Blog</option>
+              <option value="21:9">21:9 — Điện ảnh/Banner rộng</option>
+            </optgroup>
+            <optgroup label="Đặc biệt">
+              <option value="4:3">4:3 — Trình chiếu/Slide</option>
+              <option value="3:4">3:4 — Poster/Tờ rơi in ấn</option>
+            </optgroup>
+          </select>
+
+          <label for="artStyle">Phong cách nghệ thuật</label>
+          <select id="artStyle">
+            <optgroup label="Chân thực / Nhiếp ảnh">
+              <option value="Realistic Cinematic Photography">Ảnh chụp thực tế / Điện ảnh</option>
+              <option value="Studio Product Photography">Ảnh sản phẩm Studio (nền sạch, chuyên nghiệp)</option>
+              <option value="Architectural and Real Estate Photography">Kiến trúc / Bất động sản chân thực</option>
+              <option value="Industrial Documentary Photography">Phóng sự công nghiệp (nhà máy, xưởng SX)</option>
+              <option value="Corporate Professional Photography">Doanh nghiệp chuyên nghiệp (đội ngũ, văn phòng)</option>
+              <option value="Vintage Retro Film Photography">Ảnh phim cổ điển / Retro</option>
+            </optgroup>
+            <optgroup label="Đồ họa / Minh họa">
+              <option value="Flat 2D Vector Illustration">Minh họa Vector phẳng (Flat 2D)</option>
+              <option value="3D Isometric Pixar style">Đồ họa 3D (Isometric / Pixar style)</option>
+              <option value="Digital Painting Concept Art">Vẽ kỹ thuật số / Concept Art</option>
+              <option value="Flat Infographic Style">Infographic phẳng, sơ đồ hóa</option>
+              <option value="Minimal Line Art">Line Art tối giản</option>
+              <option value="Watercolor Illustration">Màu nước (Watercolor)</option>
+              <option value="Anime Manga Style">Anime / Manga</option>
+            </optgroup>
+            <optgroup label="Cao cấp / Đặc biệt">
+              <option value="Luxury Editorial Fashion Photography">Thời trang cao cấp (Luxury Editorial)</option>
+            </optgroup>
+          </select>
+
+          <label for="toneVibe">Tone màu / Vibe</label>
+          <select id="toneVibe">
+            <option value="Auto, matching the article's mood">Tự động theo nội dung (Auto)</option>
+            <option value="Bright and Cheerful">Sáng sủa, Tích cực</option>
+            <option value="Minimalist and Elegant">Tối giản, Sang trọng</option>
+            <option value="Luxury Gold and Black premium">Sang trọng đẳng cấp (Vàng &amp; Đen)</option>
+            <option value="Corporate Trust Blue and White">Tin cậy chuyên nghiệp (Xanh dương &amp; Trắng)</option>
+            <option value="Green and Sustainable eco-friendly">Xanh bền vững / Eco-friendly</option>
+            <option value="Warm and Family-friendly">Ấm áp, Gần gũi gia đình</option>
+            <option value="Industrial and Bold">Công nghiệp, Mạnh mẽ</option>
+            <option value="Youthful and Vibrant">Trẻ trung, Năng động</option>
+            <option value="Neon High-tech Cyberpunk">Công nghệ tương lai (Cyberpunk/Neon)</option>
+            <option value="Wes Anderson style pastel symmetrical">Điện ảnh Wes Anderson (Pastel, Đối xứng)</option>
+            <option value="Festive Traditional Tet holiday">Lễ hội, Truyền thống (Tết)</option>
+            <option value="Dark and Dramatic moody">U tối, Kịch tính</option>
+          </select>
+        </div>
+
+        <!-- Khối 3: Nút bấm -->
+        <div>
+          <button class="btn-primary" id="generateBtn">
+            <span class="spinner" id="spinner"></span>
+            <span id="generateBtnText">Tạo Prompt Gợi Ý</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: OUTPUT -->
+      <div id="outputCol">
+        <div class="output-head">
+          <h2>Kết quả gợi ý</h2>
+          <span class="output-sub" id="outputSub">Chưa có kết quả</span>
+        </div>
+
+        <div id="resultArea">
+          <div class="empty-state" id="emptyState">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="8.5" cy="9.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+            <p>Dán bài viết bên trái, chọn phong cách phù hợp rồi bấm "Tạo Prompt Gợi Ý" — hệ thống sẽ đề xuất 3 concept hình ảnh minh họa kèm prompt tiếng Anh sẵn sàng để dùng.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <span>Phát triển bởi Bảo Kỳ</span>
+    <span class="dot-sep"></span>
+    <span>Lưu hành nội bộ ISC</span>
+    <span class="dot-sep"></span>
+    <span id="versionTag">Phiên bản v1.0 (Gemini 2.5 Flash)</span>
+  </footer>
+
+  <!-- Mandatory API key gate: hiện ngay khi vào web nếu chưa có key hợp lệ -->
+  <div class="overlay" id="gateOverlay">
+    <div class="modal">
+      <h3>🔑 Nhập API Key Gemini để bắt đầu</h3>
+      <p class="hint">Công cụ này cần một Gemini API Key để hoạt động. Key chỉ được lưu tại trình duyệt của bạn (localStorage), không gửi đi đâu khác ngoài Google.</p>
+      <label style="margin-top:0;">API Key</label>
+      <input type="password" id="gateKeyInput" placeholder="AIza... hoặc AQ...">
+      <p class="hint" id="gateStatus" style="display:none;margin-top:8px;"></p>
+      <div class="modal-row">
+        <button class="btn-solid" id="gateSave" style="width:100%;">Kiểm tra &amp; Bắt đầu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quota exceeded modal -->
+  <div class="overlay" id="quotaOverlay">
+    <div class="modal">
+      <h3>⚠️ API Key hiện tại đã hết hạn mức</h3>
+      <p class="hint">API Key bạn đang dùng tạm thời đã hết hạn mức (quota). Bạn có thể nhập một API Key khác để tiếp tục thao tác ngay.</p>
+      <label style="margin-top:0;">API Key mới</label>
+      <input type="password" id="quotaKeyInput" placeholder="AIza... hoặc AQ...">
+      <div class="modal-row">
+        <button class="btn-ghost" id="quotaCancel">Để sau</button>
+        <button class="btn-solid" id="quotaSave">Kiểm tra &amp; Thử lại</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advanced settings modal (đổi API key) -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h3>Cài đặt API Key</h3>
+      <p class="hint">Đổi API Key Gemini bạn muốn dùng. Key được lưu an toàn tại trình duyệt của bạn.</p>
+      <label style="margin-top:0;">API Key</label>
+      <input type="password" id="apiKeyInput" placeholder="AIza... hoặc AQ...">
+      <p class="hint" id="settingsStatus" style="display:none;margin-top:8px;"></p>
+      <div class="modal-row">
+        <button class="btn-ghost" id="cancelSettings">Đóng</button>
+        <button class="btn-solid" id="saveSettings">Kiểm tra &amp; Lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span class="dot"></span><span id="toastText">Đã copy!</span></div>
+  <div class="toast-container" id="toastContainer"></div>
+
+<script>
+(function(){
+  const DEFAULT_MODEL = 'gemini-2.5-flash';
+  const LS_OVERRIDE_KEY = 'isc_user_override_key';
+
+  const els = {
+    settingsBtn: document.getElementById('settingsBtn'),
+    overlay: document.getElementById('overlay'),
+    apiKeyInput: document.getElementById('apiKeyInput'),
+    saveSettings: document.getElementById('saveSettings'),
+    cancelSettings: document.getElementById('cancelSettings'),
+
+    gateOverlay: document.getElementById('gateOverlay'),
+    gateKeyInput: document.getElementById('gateKeyInput'),
+    gateSave: document.getElementById('gateSave'),
+    gateStatus: document.getElementById('gateStatus'),
+    settingsStatus: document.getElementById('settingsStatus'),
+
+    quotaOverlay: document.getElementById('quotaOverlay'),
+    quotaKeyInput: document.getElementById('quotaKeyInput'),
+    quotaSave: document.getElementById('quotaSave'),
+    quotaCancel: document.getElementById('quotaCancel'),
+
+    articleInput: document.getElementById('articleInput'),
+    charCount: document.getElementById('charCount'),
+    refText: document.getElementById('refText'),
+    exactText: document.getElementById('exactText'),
+
+    uploadBox: document.getElementById('uploadBox'),
+    refImageInput: document.getElementById('refImageInput'),
+    uploadPlaceholder: document.getElementById('uploadPlaceholder'),
+    uploadPreviewWrap: document.getElementById('uploadPreviewWrap'),
+    uploadPreview: document.getElementById('uploadPreview'),
+    uploadFileName: document.getElementById('uploadFileName'),
+    removeRefImage: document.getElementById('removeRefImage'),
+
+    aspectRatio: document.getElementById('aspectRatio'),
+    artStyle: document.getElementById('artStyle'),
+    toneVibe: document.getElementById('toneVibe'),
+    generateBtn: document.getElementById('generateBtn'),
+    generateBtnText: document.getElementById('generateBtnText'),
+    spinner: document.getElementById('spinner'),
+    resultArea: document.getElementById('resultArea'),
+    emptyState: document.getElementById('emptyState'),
+    outputSub: document.getElementById('outputSub'),
+    outputCol: document.getElementById('outputCol'),
+    toast: document.getElementById('toast'),
+    toastText: document.getElementById('toastText'),
+    toastContainer: document.getElementById('toastContainer'),
+    clearAllBtn: document.getElementById('clearAllBtn'),
+  };
+
+  let refImageData = null;
+  const LS_DRAFT_KEY = 'isc_article_draft';
+
+  // ============ AUTO-SAVE DRAFT ============
+  (function restoreDraft(){
+    try{
+      const saved = localStorage.getItem(LS_DRAFT_KEY);
+      if(saved){
+        els.articleInput.value = saved;
+        els.charCount.textContent = saved.length;
+      }
+    }catch(e){ /* localStorage có thể bị chặn — bỏ qua âm thầm */ }
+  })();
+  let draftSaveTimer = null;
+  function scheduleDraftSave(){
+    clearTimeout(draftSaveTimer);
+    draftSaveTimer = setTimeout(()=>{
+      try{ localStorage.setItem(LS_DRAFT_KEY, els.articleInput.value); }catch(e){}
+    }, 250);
+  }
+
+  // ============ LẤY KEY ============
+  function getEffectiveKey(){ 
+    return localStorage.getItem(LS_OVERRIDE_KEY) || ''; 
+  }
+  function saveKey(key){ localStorage.setItem(LS_OVERRIDE_KEY, key); }
+
+  // ============ VALIDATE KEY BẰNG HEADER ============
+  async function validateApiKey(key){
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models?pageSize=1';
+    let res;
+    try{
+      res = await fetch(url, { headers: { 'x-goog-api-key': key } });
+    }catch(e){
+      throw new Error('Không kết nối được tới Google (kiểm tra mạng).');
+    }
+    if(res.status === 401 || res.status === 403){
+      throw new Error('API Key không hợp lệ. Vui lòng kiểm tra lại.');
+    }
+    if(!res.ok){
+      let detail = '';
+      try{ const j = await res.json(); detail = j?.error?.message || ''; }catch(e){}
+      throw new Error(detail || `Lỗi xác thực (mã ${res.status}).`);
+    }
+    return true;
+  }
+
+  function openGate(){ els.gateOverlay.classList.add('show'); }
+  function closeGate(){ els.gateOverlay.classList.remove('show'); }
+  function setGateStatus(msg, isError){
+    els.gateStatus.textContent = msg;
+    els.gateStatus.style.display = msg ? 'block' : 'none';
+    els.gateStatus.style.color = isError ? '#B03A4C' : 'var(--text-mid)';
+  }
+
+  if(!getEffectiveKey()){
+    openGate();
+  }
+
+  els.gateSave.addEventListener('click', async ()=>{
+    const key = els.gateKeyInput.value.trim();
+    if(!key){ setGateStatus('Vui lòng dán API Key vào ô trống.', true); els.gateKeyInput.focus(); return; }
+    els.gateSave.disabled = true;
+    setGateStatus('Đang kiểm tra kết nối với Google...', false);
+    try{
+      await validateApiKey(key);
+      saveKey(key);
+      setGateStatus('', false);
+      closeGate();
+      showToast('API Key hợp lệ, đã lưu!');
+    }catch(err){
+      setGateStatus(err.message || 'API Key không hợp lệ.', true);
+    }finally{
+      els.gateSave.disabled = false;
+    }
+  });
+
+  // ============ CÀI ĐẶT ============
+  function setSettingsStatus(msg, isError){
+    els.settingsStatus.textContent = msg;
+    els.settingsStatus.style.display = msg ? 'block' : 'none';
+    els.settingsStatus.style.color = isError ? '#B03A4C' : 'var(--text-mid)';
+  }
+  function openSettings(){
+    els.apiKeyInput.value = getEffectiveKey();
+    setSettingsStatus('', false);
+    els.overlay.classList.add('show');
+  }
+  function closeSettings(){ els.overlay.classList.remove('show'); }
+  els.settingsBtn.addEventListener('click', openSettings);
+  els.cancelSettings.addEventListener('click', closeSettings);
+  els.overlay.addEventListener('click', (e)=>{ if(e.target === els.overlay) closeSettings(); });
+  
+  els.saveSettings.addEventListener('click', async ()=>{
+    const key = els.apiKeyInput.value.trim();
+    if(!key){ setSettingsStatus('Vui lòng nhập API Key.', true); els.apiKeyInput.focus(); return; }
+    els.saveSettings.disabled = true;
+    setSettingsStatus('Đang kiểm tra API Key...', false);
+    try{
+      await validateApiKey(key);
+      saveKey(key);
+      closeSettings();
+      showToast('Đã đổi API Key mới');
+    }catch(err){
+      setSettingsStatus(err.message || 'API Key không hợp lệ.', true);
+    }finally{
+      els.saveSettings.disabled = false;
+    }
+  });
+
+  function openQuotaModal(){
+    els.quotaKeyInput.value = '';
+    els.quotaOverlay.classList.add('show');
+  }
+  function closeQuotaModal(){ els.quotaOverlay.classList.remove('show'); }
+  els.quotaCancel.addEventListener('click', closeQuotaModal);
+  els.quotaOverlay.addEventListener('click', (e)=>{ if(e.target === els.quotaOverlay) closeQuotaModal(); });
+  
+  els.quotaSave.addEventListener('click', async ()=>{
+    const key = els.quotaKeyInput.value.trim();
+    if(!key){ els.quotaKeyInput.focus(); return; }
+    els.quotaSave.disabled = true;
+    try{
+      await validateApiKey(key);
+      saveKey(key);
+      closeQuotaModal();
+      showToast('Đã lưu API Key, đang thử lại...');
+      handleGenerate();
+    }catch(err){
+      showToast(err.message || 'API Key không hợp lệ.');
+    }finally{
+      els.quotaSave.disabled = false;
+    }
+  });
+
+  els.articleInput.addEventListener('input', ()=>{
+    els.charCount.textContent = els.articleInput.value.length;
+    scheduleDraftSave();
+  });
+
+  els.clearAllBtn.addEventListener('click', ()=>{
+    els.articleInput.value = '';
+    els.charCount.textContent = '0';
+    els.refText.value = '';
+    els.exactText.value = '';
+    refImageData = null;
+    els.refImageInput.value = '';
+    els.uploadPlaceholder.style.display = '';
+    els.uploadPreviewWrap.style.display = 'none';
+    els.aspectRatio.selectedIndex = 4;
+    els.artStyle.selectedIndex = 0;
+    els.toneVibe.selectedIndex = 0;
+    try{ localStorage.removeItem(LS_DRAFT_KEY); }catch(e){}
+    els.articleInput.focus();
+    showToast('Đã xóa toàn bộ nội dung nhập');
+  });
+
+  els.uploadBox.addEventListener('click', ()=> els.refImageInput.click());
+  els.refImageInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    if(file.size > 4.5 * 1024 * 1024){
+      showErrorToast('Ảnh quá lớn (>4.5MB), vui lòng chọn ảnh nhẹ hơn.', 'warning');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      const dataUrl = reader.result;
+      const base64 = dataUrl.split(',')[1];
+      refImageData = { base64, mimeType: file.type || 'image/jpeg', name: file.name };
+      els.uploadPreview.src = dataUrl;
+      els.uploadFileName.textContent = file.name;
+      els.uploadPlaceholder.style.display = 'none';
+      els.uploadPreviewWrap.style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  });
+  els.removeRefImage.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    refImageData = null;
+    els.refImageInput.value = '';
+    els.uploadPlaceholder.style.display = '';
+    els.uploadPreviewWrap.style.display = 'none';
+  });
+
+  function showToast(msg){
+    els.toastText.textContent = msg;
+    els.toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=> els.toast.classList.remove('show'), 2200);
+  }
+
+  const TOAST_ICONS = { warning:'⚠️', overload:'⏳', danger:'✕', critical:'🛠️' };
+  function showErrorToast(msg, type){
+    type = type || 'danger';
+    const el = document.createElement('div');
+    el.className = 'error-toast ' + type;
+    el.innerHTML = `<span class="et-icon">${TOAST_ICONS[type] || '✕'}</span><span class="et-text"></span>`;
+    el.querySelector('.et-text').textContent = msg;
+    els.toastContainer.appendChild(el);
+    requestAnimationFrame(()=> requestAnimationFrame(()=> el.classList.add('show')));
+    const remove = ()=>{
+      el.classList.remove('show');
+      el.classList.add('hide');
+      setTimeout(()=> el.remove(), 320);
+    };
+    setTimeout(remove, 4000);
+    el.addEventListener('click', remove);
+  }
+
+  function setLoading(isLoading){
+    els.generateBtn.disabled = isLoading;
+    els.spinner.classList.toggle('show', isLoading);
+    els.generateBtnText.textContent = isLoading ? 'Đang phân tích...' : 'Tạo Prompt Gợi Ý';
+    document.body.classList.toggle('is-generating', isLoading);
+  }
+
+  function renderSkeleton(){
+    els.outputSub.textContent = 'Đang tạo gợi ý...';
+    let html = '<div class="cards">';
+    for(let i=0;i<3;i++){
+      html += '<div class="skeleton-card"><div class="sk-line" style="width:30%"></div><div class="sk-line" style="width:70%;height:16px"></div><div class="sk-line" style="width:95%"></div><div class="sk-line" style="width:88%"></div><div class="sk-line" style="width:100%;height:70px"></div></div>';
+    }
+    html += '</div>';
+    els.resultArea.innerHTML = html;
+    if(window.matchMedia('(max-width: 900px)').matches){
+      els.outputCol.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, (c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderResults(concepts){
+    if(!Array.isArray(concepts) || concepts.length === 0){
+      els.resultArea.innerHTML = '<div class="empty-state"><p>Không nhận được gợi ý nào. Vui lòng thử lại.</p></div>';
+      els.outputSub.textContent = 'Không có kết quả';
+      return;
+    }
+    els.outputSub.textContent = concepts.length + ' concept được đề xuất';
+    let html = '<div class="cards">';
+    concepts.forEach((c, idx)=>{
+      const name = escapeHtml(c.conceptName || ('Concept ' + (idx+1)));
+      const explanation = escapeHtml(c.explanation || '');
+      const prompt = escapeHtml(c.englishPrompt || '');
+      html += `
+        <div class="card">
+          <div class="card-top"><span class="concept-badge">CONCEPT ${idx+1}</span></div>
+          <h3 class="card-title">${name}</h3>
+          <p class="card-explain">${explanation}</p>
+          <div class="prompt-box">${prompt}</div>
+          <button class="copy-btn" data-idx="${idx}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copy Prompt
+          </button>
+        </div>`;
+    });
+    html += '</div>';
+    els.resultArea.innerHTML = html;
+
+    els.resultArea.querySelectorAll('.copy-btn').forEach((btn)=>{
+      btn.addEventListener('click', ()=>{
+        const idx = Number(btn.getAttribute('data-idx'));
+        copyToClipboard(concepts[idx].englishPrompt || '', btn);
+      });
+    });
+  }
+
+  function copyToClipboard(text, btn){
+    const done = ()=>{
+      showToast('Đã copy!');
+      if(btn){
+        const original = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg> Đã copy';
+        setTimeout(()=>{ btn.classList.remove('copied'); btn.innerHTML = original; }, 1600);
+      }
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text, done));
+    } else { fallbackCopy(text, done); }
+  }
+  function fallbackCopy(text, cb){
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    cb();
+  }
+
+  const RESPONSE_SCHEMA = {
+    type: "ARRAY",
+    items: {
+      type: "OBJECT",
+      properties: {
+        conceptName: { type: "STRING" },
+        explanation: { type: "STRING" },
+        englishPrompt: { type: "STRING" }
+      },
+      required: ["conceptName", "explanation", "englishPrompt"]
+    }
+  };
+
+  const SYSTEM_INSTRUCTION = `Bạn là một Giám đốc Nghệ thuật (Art Director) và Chuyên gia Prompt AI (Midjourney/DALL-E/Gemini Image chuyên nghiệp). Nhiệm vụ: đọc bài viết/ý tưởng tiếng Việt, phân tích thông điệp cốt lõi và sáng tạo 3 phương án hình ảnh minh họa khác biệt nhau.
+
+Trả về đúng cấu trúc JSON gồm: conceptName (tên ý tưởng tiếng Việt, ngắn gọn), explanation (giải thích nhanh bằng tiếng Việt vì sao hình ảnh phù hợp, dưới 50 chữ), englishPrompt (câu lệnh tiếng Anh chi tiết).
+
+YÊU CẦU VỀ 'englishPrompt':
+- Hoàn toàn bằng tiếng Anh, theo công thức: [Subject & Action] + [Environment] + [Art Style] + [Lighting] + [Camera Angle & Lens] + [Render Quality specs].
+- Chọn lọc thuật ngữ nhiếp ảnh/đồ họa phù hợp concept: cinematic lighting, volumetric rays, soft studio lighting, natural sunlight, rim light, wide-angle shot, macro photography, 35mm lens, drone view, eye-level, depth of field, 8k resolution, highly detailed, masterpiece, hyper-realistic, Unreal Engine 5 render.
+- LUÔN thêm các từ khóa đảm bảo không biến dạng, độ chính xác cao: accurate proportions, anatomically correct, consistent perspective, no distortion, no artifacts, well-formed, clean composition.
+- Áp dụng đúng tỉ lệ khung hình được yêu cầu: mô tả bố cục phù hợp (vertical/horizontal/square composition) VÀ thêm tham số --ar {tỉ lệ} ở cuối để tương thích Midjourney.
+- Tạo đủ 3 phương án khác biệt nhau về bố cục/góc nhìn/ẩn dụ hình ảnh.
+
+QUY TẮC ĐỘ CHÍNH XÁC THỰC TẾ: Nếu có "THÔNG TIN THAM CHIẾU" và/hoặc ảnh tham chiếu được cung cấp, bạn PHẢI mô tả đúng các đặc điểm đó (hình dáng, màu sắc, logo, kiến trúc, model sản phẩm...) trong englishPrompt — đây là hình ảnh dùng cho mục đích quảng bá thương hiệu thật nên tuyệt đối không tự sáng tạo sai lệch so với thực tế.
+
+QUY TẮC VỀ CHỮ TRONG ẢNH: Mặc định KHÔNG yêu cầu AI vẽ chữ/typography lên ảnh (dùng ẩn dụ hình ảnh thay thế), luôn kết thúc bằng: "Negative prompt: no text, typography, letters, watermarks, ugly, deformed, blurry". Nếu có mục "TEXT CẦN XUẤT HIỆN CHÍNH XÁC" được cung cấp, hãy: giữ nguyên chính xác 100% văn bản đó (kể cả dấu tiếng Việt) trong ngoặc kép, ví dụ: text reading exactly "..." in clean bold sans-serif typography, perfectly spelled, sharp legible letterforms — và trong "explanation" ghi chú ngắn rằng độ chính xác của chữ còn phụ thuộc vào khả năng render text của công cụ vẽ ảnh AI được chọn.`;
+
+  function buildUserPromptParts(article, style, tone, ratio, refTextVal, exactTextVal){
+    let text = `Đây là nội dung bài viết: "${article}"\n\nHãy tạo prompt vẽ ảnh theo phong cách: ${style}, với tông màu/vibe: ${tone}, tỉ lệ ảnh: ${ratio} (thêm --ar ${ratio} vào cuối mỗi englishPrompt).`;
+    if(refTextVal){
+      text += `\n\nTHÔNG TIN THAM CHIẾU (bắt buộc mô tả đúng theo thông tin này, không tự sáng tạo sai lệch): ${refTextVal}`;
+    }
+    if(exactTextVal){
+      text += `\n\nTEXT CẦN XUẤT HIỆN CHÍNH XÁC TRONG ẢNH (giữ nguyên chính xác chữ và dấu tiếng Việt): "${exactTextVal}"`;
+    }
+    text += `\n\nTrả về đúng định dạng JSON như yêu cầu, đủ 3 phương án.`;
+
+    const parts = [{ text }];
+    if(refImageData){
+      parts.push({ inlineData: { mimeType: refImageData.mimeType, data: refImageData.base64 } });
+    }
+    return parts;
+  }
+
+  async function callGeminiWithKey(apiKey, model, parts){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    
+    const body = {
+      systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+      contents: [{ role: "user", parts }],
+      generationConfig: { responseMimeType: "application/json", responseSchema: RESPONSE_SCHEMA, temperature: 0.9 }
+    };
+    
+    const res = await fetch(url, { 
+      method: 'POST', 
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      }, 
+      body: JSON.stringify(body) 
+    });
+
+    if(!res.ok){
+      let detail = '';
+      try{ const errJson = await res.json(); detail = errJson?.error?.message || ''; }catch(e){}
+      const err = new Error(detail || `Lỗi gọi API (mã ${res.status}).`);
+      err.status = res.status;
+      err.isOverloaded = res.status === 503 || /overloaded|high[\s-]?demand|unavailable|try again later|service is currently/i.test(detail);
+      err.isQuota = !err.isOverloaded && (res.status === 429 || /quota|exhaust|billing/i.test(detail));
+      if(res.status === 429 && !/quota|exhaust|billing/i.test(detail)) { err.isOverloaded = true; err.isQuota = false; }
+      err.isInvalidKey = (res.status === 400 || res.status === 401 || res.status === 403) && /API key/i.test(detail);
+      if(res.status === 401 || res.status === 403) err.isInvalidKey = true;
+      err.isNotFound = res.status === 404;
+      throw err;
+    }
+    const data = await res.json();
+    const finishReason = data?.candidates?.[0]?.finishReason;
+    const rawText = data?.candidates?.[0]?.content?.parts?.map(p=>p.text).filter(Boolean).join('') || '';
+    if(!rawText){
+      if(finishReason === 'SAFETY'){
+        const e = new Error('Nội dung bị chặn bởi bộ lọc an toàn của Gemini. Hãy thử điều chỉnh lại nội dung bài viết.');
+        e.isSafety = true;
+        throw e;
+      }
+      throw new Error('Không nhận được phản hồi hợp lệ từ API.');
+    }
+    try{ return JSON.parse(rawText); }
+    catch(e){
+      const match = rawText.match(/\[[\s\S]*\]/);
+      if(match){ try{ return JSON.parse(match[0]); }catch(e2){ throw new Error('Không đọc được kết quả JSON trả về từ API.'); } }
+      throw new Error('Không đọc được kết quả JSON trả về từ API.');
+    }
+  }
+
+  async function handleGenerate(){
+    const userApiKey = getEffectiveKey();
+    if(!userApiKey){
+      openGate();
+      return;
+    }
+
+    const article = els.articleInput.value.trim();
+    if(!article){
+      showErrorToast('Vui lòng dán nội dung bài viết trước khi tạo prompt.', 'warning');
+      els.articleInput.focus();
+      return;
+    }
+    if(article.length < 15){
+      showErrorToast('Nội dung bài viết hơi ngắn, hãy dán đầy đủ hơn để AI hiểu đúng ngữ cảnh.', 'warning');
+      return;
+    }
+
+    const ratio = els.aspectRatio.value;
+    const style = els.artStyle.options[els.artStyle.selectedIndex].value;
+    const tone = els.toneVibe.options[els.toneVibe.selectedIndex].value;
+    const refTextVal = els.refText.value.trim();
+    const exactTextVal = els.exactText.value.trim();
+    const parts = buildUserPromptParts(article, style, tone, ratio, refTextVal, exactTextVal);
+    
+    const model = DEFAULT_MODEL;
+
+    setLoading(true);
+    renderSkeleton();
+
+    const resetToEmpty = ()=>{
+      els.resultArea.innerHTML = '';
+      els.resultArea.appendChild(els.emptyState);
+      els.outputSub.textContent = 'Chưa có kết quả';
+    };
+
+    try{
+      const concepts = await callGeminiWithKey(userApiKey, model, parts);
+      renderResults(concepts);
+    }catch(err){
+      console.error(err);
+      resetToEmpty();
+      if(err.isOverloaded){
+        showErrorToast('Hệ thống AI đang quá tải cục bộ. Bạn vui lòng đợi vài giây rồi bấm thử lại nhé!', 'overload');
+      }else if(err.isQuota){
+        openQuotaModal();
+      }else if(err.isInvalidKey){
+        showErrorToast('API Key bạn đã nhập không hợp lệ hoặc đã bị Google thu hồi. Vui lòng cập nhật lại.', 'danger');
+        openGate();
+      }else if(err.isNotFound){
+        showErrorToast(`Model AI hiện tại ("${model}") tạm thời không khả dụng. Vui lòng kiểm tra lại cấu hình.`, 'danger');
+      }else if(err.isSafety){
+        showErrorToast(err.message, 'warning');
+      }else{
+        showErrorToast('Đã xảy ra sự cố kết nối. Nếu lỗi vẫn tiếp diễn, vui lòng liên hệ ADMIN BẢO KỲ - TT.CSKH để được fix lỗi ngay lập tức.', 'critical');
+      }
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  els.generateBtn.addEventListener('click', handleGenerate);
+})();
+</script>
+</body>
+</html>
